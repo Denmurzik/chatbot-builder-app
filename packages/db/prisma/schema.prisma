@@ -1,0 +1,137 @@
+// Схема PostgreSQL по п. 3.1 спецификации (таблицы — snake_case через @@map/@map)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BotStatus {
+  CREATED
+  PUBLISHED
+}
+
+enum MessengerType {
+  TELEGRAM
+  VK
+}
+
+enum Channel {
+  MESSENGER
+  PREVIEW
+}
+
+enum DialogState {
+  RUNNING
+  WAITING_USER
+  WAITING_EXTERNAL
+  SUSPENDED
+  FINISHED
+}
+
+enum RequestStatus {
+  SENT
+  SUCCEEDED
+  FAILED
+  TIMED_OUT
+}
+
+model Author {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  projects     Project[]
+
+  @@map("author")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  authorId    String   @map("author_id")
+  name        String
+  scenario    Json
+  // Тестовое окружение для превью
+  environment Json
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  author      Author   @relation(fields: [authorId], references: [id])
+  bots        Bot[]
+
+  @@map("project")
+}
+
+model Bot {
+  id                String                @id @default(uuid())
+  projectId         String                @map("project_id")
+  name              String
+  status            BotStatus             @default(CREATED)
+  publishedScenario Json?                 @map("published_scenario")
+  environment       Json
+  publishedAt       DateTime?             @map("published_at")
+  project           Project               @relation(fields: [projectId], references: [id])
+  connections       MessengerConnection[]
+  dialogContexts    DialogContext[]
+
+  @@map("bot")
+}
+
+model MessengerConnection {
+  id          String        @id @default(uuid())
+  botId       String        @map("bot_id")
+  messenger   MessengerType
+  tokenCipher String        @map("token_cipher")
+  tokenMask   String        @map("token_mask")
+  tokenHash   String        @unique @map("token_hash")
+  // Метаданные подключения (для VK: { groupId, mode, confirmationCode?, secretCipher?, secretMask? }; null для Telegram)
+  config      Json?         @map("config")
+  bot         Bot           @relation(fields: [botId], references: [id])
+
+  @@unique([botId, messenger])
+  @@map("messenger_connection")
+}
+
+model DialogContext {
+  id               String        @id @default(uuid())
+  // NULL для превью
+  botId            String?       @map("bot_id")
+  chatId           String        @map("chat_id")
+  userId           String        @map("user_id")
+  channel          Channel
+  state            DialogState
+  currentBlockId   String?       @map("current_block_id")
+  variables        Json
+  currentRequestId String?       @map("current_request_id")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  bot              Bot?          @relation(fields: [botId], references: [id], onDelete: Restrict)
+  currentRequest   HttpRequest?  @relation("CurrentRequest", fields: [currentRequestId], references: [id])
+  requests         HttpRequest[] @relation("RequestOwner")
+
+  @@unique([botId, chatId])
+  @@index([channel, updatedAt])
+  @@map("dialog_context")
+}
+
+model HttpRequest {
+  id              String          @id @default(uuid())
+  dialogContextId String          @map("dialog_context_id")
+  blockId         String          @map("block_id")
+  method          String
+  url             String
+  headers         Json
+  body            String
+  status          RequestStatus
+  attempt         Int             @default(0)
+  responseCode    Int?            @map("response_code")
+  responseBody    String?         @map("response_body")
+  error           String?
+  createdAt       DateTime        @default(now()) @map("created_at")
+  dialogContext   DialogContext   @relation("RequestOwner", fields: [dialogContextId], references: [id])
+  currentFor      DialogContext[] @relation("CurrentRequest")
+
+  @@index([dialogContextId])
+  @@index([status, createdAt])
+  @@map("http_request")
+}

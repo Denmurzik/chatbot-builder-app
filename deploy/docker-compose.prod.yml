@@ -1,0 +1,140 @@
+name: chatbot-prod
+
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://chatbot:${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD}@postgres:5432/chatbot
+  REDIS_URL: redis://redis:6379
+  VAULT_KEY: ${VAULT_KEY:?задайте VAULT_KEY}
+  VAULT_HASH_KEY: ${VAULT_HASH_KEY:?задайте VAULT_HASH_KEY}
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chatbot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD}
+      POSTGRES_DB: chatbot
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U chatbot -d chatbot']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: ..
+      target: migrate
+    restart: 'no'
+    environment:
+      <<: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ..
+      target: api
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      JWT_SECRET: ${JWT_SECRET:?задайте JWT_SECRET}
+      PUBLIC_URL: ${PUBLIC_URL:?задайте PUBLIC_URL}
+      TELEGRAM_POLLING: ${TELEGRAM_POLLING:-0}
+      TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+      API_PORT: '3000'
+    # Уникальный алиас: в общей сети NPM могут быть чужие сервисы api/web
+    networks:
+      default:
+        aliases:
+          - chatbot-api
+    # 401 от /api/auth/me означает, что приложение поднялось
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/auth/me').then((r) => process.exit(r.status === 401 || r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  engine:
+    build:
+      context: ..
+      target: engine
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      # Хосты, на которые бот может отправлять HTTP-запросы (защита внутренней сети сервера)
+      HTTP_ALLOWED_HOSTS: ${HTTP_ALLOWED_HOSTS:-mock-clinic}
+      TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # Тестовый API клиники; в окружении бота адрес — http://mock-clinic:4010
+  mock-clinic:
+    build:
+      context: ..
+      target: mock-clinic
+    restart: unless-stopped
+    environment:
+      MOCK_CLINIC_PORT: '4010'
+      MOCK_CLINIC_API_KEY: ${MOCK_CLINIC_API_KEY:?задайте MOCK_CLINIC_API_KEY}
+
+  # Исходящий HTTP-прокси для запросов к api.telegram.org (включается профилем --profile telegram-proxy)
+  telegram-proxy:
+    image: ghcr.io/xtls/xray-core:26.11.9
+    command: ['run', '-config', '/etc/xray/config.json']
+    volumes:
+      - ./xray/config.json:/etc/xray/config.json:ro
+    restart: unless-stopped
+    profiles:
+      - telegram-proxy
+
+  # Статика SPA и прокси /api/ и /webhook/ на api; порты хоста не публикуются
+  chatbot-web:
+    build:
+      context: ..
+      target: web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      default:
+      proxy_manager_default:
+        aliases:
+          - chatbot-web
+
+networks:
+  proxy_manager_default:
+    external: true
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -1,0 +1,211 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+  --radius: 0.625rem;
+  --scrollbar-thumb: oklch(0.28 0.03 250 / 22%);
+  --scrollbar-thumb-hover: oklch(0.28 0.03 250 / 38%);
+  /* Правило 60/30/10: 60% чистый светлый фон, 30% холодный стальной сланцевый, 10% лайм */
+  --background: #FFFFFF;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --surface: #E8EEF6;
+  --primary: #A3E635;
+  --primary-foreground: #11160A;
+  --secondary: #E4EAF2;
+  --secondary-foreground: #1E293B;
+  --muted: #E4EAF2;
+  --muted-foreground: #475569;
+  --accent: #D7E1EE;
+  --accent-foreground: #0F172A;
+  --destructive: #DC2626;
+  --border: #CBD5E1;
+  --input: #CBD5E1;
+  --ring: #65A30D;
+  --brand: #A3E635;
+  --brand-soft: #E9F8CF;
+  --brand-ink: #3F6212;
+  /* Подсветка выражений в полях редактора */
+  --syntax-variable: oklch(0.46 0.17 250);
+  --syntax-env: oklch(0.46 0.18 300);
+  --syntax-string: oklch(0.43 0.13 145);
+  --syntax-number: oklch(0.5 0.14 70);
+  --syntax-operator: oklch(0.42 0.03 250);
+  --syntax-keyword: oklch(0.48 0.19 350);
+  --syntax-unknown: var(--destructive);
+}
+
+.dark {
+  color-scheme: dark;
+  --scrollbar-thumb: oklch(0.88 0.02 250 / 20%);
+  --scrollbar-thumb-hover: oklch(0.88 0.02 250 / 36%);
+  /* Правило 60/30/10: 60% чёрно-графитовая база, 30% стальной сланцевый, 10% лайм */
+  --background: #0D0F12;
+  --foreground: #F1F5F9;
+  --card: #19212E;
+  --card-foreground: #F1F5F9;
+  --popover: #1E2838;
+  --popover-foreground: #F1F5F9;
+  --surface: #161D29;
+  --primary: #A3E635;
+  --primary-foreground: #0F1607;
+  --secondary: #222D3D;
+  --secondary-foreground: #E2E8F0;
+  --muted: #222D3D;
+  --muted-foreground: #94A3B8;
+  --accent: #273447;
+  --accent-foreground: #F1F5F9;
+  --destructive: #EF4444;
+  --border: #2E3B4E;
+  --input: #344358;
+  --ring: #A3E635;
+  --brand: #A3E635;
+  --brand-soft: #1E2E14;
+  --brand-ink: #A3E635;
+  /* Подсветка выражений в полях редактора */
+  --syntax-variable: oklch(0.78 0.12 250);
+  --syntax-env: oklch(0.78 0.13 300);
+  --syntax-string: oklch(0.8 0.14 145);
+  --syntax-number: oklch(0.82 0.13 80);
+  --syntax-operator: oklch(0.75 0.025 250);
+  --syntax-keyword: oklch(0.78 0.15 350);
+  --syntax-unknown: var(--destructive);
+}
+
+@theme inline {
+  --font-sans: 'Onest', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@keyframes preview-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--brand),
+      0 0 0 4px rgb(163 230 53 / 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--brand),
+      0 0 0 11px rgb(163 230 53 / 0);
+  }
+}
+
+.animate-preview-pulse {
+  animation: preview-pulse 1.8s ease-in-out infinite;
+}
+
+/* Рамка множественного выделения и элементы управления React Flow в палитре Steel Slate + FIELD LIME */
+.react-flow {
+  --xy-selection-background-color: color-mix(in oklab, var(--brand) 12%, transparent);
+  --xy-selection-border: 1.5px solid var(--brand-ink);
+  --xy-controls-button-background-color: var(--surface);
+  --xy-controls-button-background-color-hover: var(--accent);
+  --xy-controls-button-color: var(--foreground);
+  --xy-controls-button-color-hover: var(--foreground);
+  --xy-controls-button-border-color: var(--border);
+}
+
+.dark .react-flow {
+  --xy-selection-border: 1.5px solid var(--brand);
+}
+
+.react-flow__selection {
+  border-style: dashed;
+  border-radius: 6px;
+}
+
+.react-flow__nodesselection-rect {
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--brand) 7%, transparent);
+}
+
+.react-flow__nodesselection-rect:active {
+  cursor: grabbing;
+}
+
+/* Расширяем область касания ручек и кнопок управления холстом на сенсорных экранах */
+@media (pointer: coarse) {
+  .react-flow__handle::after {
+    content: '';
+    position: absolute;
+    inset: -9px;
+  }
+
+  .react-flow__controls-button {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Кастомные скроллбары под светлую и тёмную тему (без светлого трека и стрелок) */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Поддержка Firefox (без перекрытия ::-webkit-scrollbar в Chromium) */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
+  }
+}

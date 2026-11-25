@@ -1,0 +1,12 @@
+# Локальная проверка прод-стека без внешней сети Nginx Proxy Manager:
+# docker compose -f deploy/docker-compose.prod.yml -f deploy/docker-compose.local.yml \
+#   --env-file deploy/.env.prod up -d --build
+services:
+  chatbot-web:
+    ports:
+      - '127.0.0.1:18180:80'
+    networks: !override
+      default:
+
+networks:
+  proxy_manager_default: !reset null

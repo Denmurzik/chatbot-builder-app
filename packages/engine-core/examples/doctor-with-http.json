@@ -1,0 +1,316 @@
+{
+  "formatVersion": 1,
+  "blocks": [
+    {
+      "id": "start",
+      "type": "ENTRY_POINT",
+      "title": "Старт",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "hello",
+      "type": "TEXT_MESSAGE",
+      "title": "Приветствие",
+      "x": 0,
+      "y": 140,
+      "text": "Здравствуйте! Запишу вас к врачу."
+    },
+    {
+      "id": "fio",
+      "type": "TEXT_INPUT",
+      "title": "ФИО",
+      "x": 0,
+      "y": 280,
+      "question": "Введите ваше ФИО:",
+      "variableName": "fio"
+    },
+    {
+      "id": "get_doctors",
+      "type": "HTTP_REQUEST",
+      "title": "Список врачей",
+      "x": 0,
+      "y": 420,
+      "method": "GET",
+      "url": "{{env.API_URL}}/doctors",
+      "headers": [
+        {
+          "name": "X-Api-Key",
+          "value": "{{env.API_KEY}}",
+          "secret": false
+        }
+      ],
+      "body": "",
+      "variableName": "doctorsResponse",
+      "errorVariable": "doctorsError",
+      "timeoutSec": 10,
+      "retryCount": 2,
+      "retryIntervalSec": 5,
+      "errorStrategy": "EXIT_ERROR",
+      "suspendText": null,
+      "responseMappings": [
+        {
+          "jsonPath": "$.items",
+          "variableName": "doctors"
+        }
+      ]
+    },
+    {
+      "id": "pick_doctor",
+      "type": "LIST_CHOICE",
+      "title": "Выбор врача",
+      "x": 0,
+      "y": 560,
+      "question": "Выберите врача, {{fio}}:",
+      "listVariable": "doctors",
+      "labelField": "name",
+      "valueField": "id",
+      "variableName": "doctorId"
+    },
+    {
+      "id": "no_doctors",
+      "type": "TEXT_MESSAGE",
+      "title": "Нет врачей",
+      "x": -320,
+      "y": 700,
+      "text": "Сейчас нет доступных врачей. Попробуйте позже."
+    },
+    {
+      "id": "get_slots",
+      "type": "HTTP_REQUEST",
+      "title": "Свободные слоты",
+      "x": 0,
+      "y": 700,
+      "method": "GET",
+      "url": "{{env.API_URL}}/slots?doctorId={{doctorId}}",
+      "headers": [
+        {
+          "name": "X-Api-Key",
+          "value": "{{env.API_KEY}}",
+          "secret": false
+        }
+      ],
+      "body": "",
+      "variableName": "slotsResponse",
+      "errorVariable": "slotsError",
+      "timeoutSec": 10,
+      "retryCount": 2,
+      "retryIntervalSec": 5,
+      "errorStrategy": "EXIT_ERROR",
+      "suspendText": null,
+      "responseMappings": [
+        {
+          "jsonPath": "$.items",
+          "variableName": "slots"
+        }
+      ]
+    },
+    {
+      "id": "pick_slot",
+      "type": "LIST_CHOICE",
+      "title": "Выбор времени",
+      "x": 0,
+      "y": 840,
+      "question": "Выберите удобное время:",
+      "listVariable": "slots",
+      "labelField": "time",
+      "valueField": "id",
+      "variableName": "slotId"
+    },
+    {
+      "id": "no_slots",
+      "type": "TEXT_MESSAGE",
+      "title": "Нет слотов",
+      "x": -320,
+      "y": 980,
+      "text": "У выбранного врача нет свободных слотов. Попробуйте выбрать другого врача."
+    },
+    {
+      "id": "create_booking",
+      "type": "HTTP_REQUEST",
+      "title": "Создание записи",
+      "x": 0,
+      "y": 980,
+      "method": "POST",
+      "url": "{{env.API_URL}}/bookings",
+      "headers": [
+        {
+          "name": "X-Api-Key",
+          "value": "{{env.API_KEY}}",
+          "secret": false
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json",
+          "secret": false
+        }
+      ],
+      "body": "{\"slotId\":\"{{slotId}}\",\"patient\":\"{{fio}}\"}",
+      "variableName": "bookingResponse",
+      "errorVariable": "bookingError",
+      "timeoutSec": 10,
+      "retryCount": 0,
+      "retryIntervalSec": 0,
+      "errorStrategy": "EXIT_ERROR",
+      "suspendText": null,
+      "responseMappings": [
+        {
+          "jsonPath": "$.bookingId",
+          "variableName": "bookingId"
+        },
+        {
+          "jsonPath": "$.time",
+          "variableName": "bookingTime"
+        },
+        {
+          "jsonPath": "$.doctor",
+          "variableName": "bookingDoctor"
+        }
+      ]
+    },
+    {
+      "id": "confirm",
+      "type": "TEXT_MESSAGE",
+      "title": "Подтверждение",
+      "x": 0,
+      "y": 1120,
+      "text": "{{fio}}, вы записаны! Врач: {{bookingDoctor}}, время: {{bookingTime}}, номер записи: {{bookingId}}."
+    },
+    {
+      "id": "api_error",
+      "type": "TEXT_MESSAGE",
+      "title": "Ошибка сервиса",
+      "x": 360,
+      "y": 840,
+      "text": "Сервис недоступен, попробуйте позже"
+    },
+    {
+      "id": "end",
+      "type": "EXIT_POINT",
+      "title": "Выход",
+      "x": 0,
+      "y": 1260
+    }
+  ],
+  "transitions": [
+    {
+      "source": {
+        "blockId": "start",
+        "output": "default"
+      },
+      "target": "hello"
+    },
+    {
+      "source": {
+        "blockId": "hello",
+        "output": "default"
+      },
+      "target": "fio"
+    },
+    {
+      "source": {
+        "blockId": "fio",
+        "output": "default"
+      },
+      "target": "get_doctors"
+    },
+    {
+      "source": {
+        "blockId": "get_doctors",
+        "output": "success"
+      },
+      "target": "pick_doctor"
+    },
+    {
+      "source": {
+        "blockId": "get_doctors",
+        "output": "error"
+      },
+      "target": "api_error"
+    },
+    {
+      "source": {
+        "blockId": "pick_doctor",
+        "output": "default"
+      },
+      "target": "get_slots"
+    },
+    {
+      "source": {
+        "blockId": "pick_doctor",
+        "output": "noOptions"
+      },
+      "target": "no_doctors"
+    },
+    {
+      "source": {
+        "blockId": "no_doctors",
+        "output": "default"
+      },
+      "target": "end"
+    },
+    {
+      "source": {
+        "blockId": "get_slots",
+        "output": "success"
+      },
+      "target": "pick_slot"
+    },
+    {
+      "source": {
+        "blockId": "get_slots",
+        "output": "error"
+      },
+      "target": "api_error"
+    },
+    {
+      "source": {
+        "blockId": "pick_slot",
+        "output": "default"
+      },
+      "target": "create_booking"
+    },
+    {
+      "source": {
+        "blockId": "pick_slot",
+        "output": "noOptions"
+      },
+      "target": "no_slots"
+    },
+    {
+      "source": {
+        "blockId": "no_slots",
+        "output": "default"
+      },
+      "target": "end"
+    },
+    {
+      "source": {
+        "blockId": "create_booking",
+        "output": "success"
+      },
+      "target": "confirm"
+    },
+    {
+      "source": {
+        "blockId": "create_booking",
+        "output": "error"
+      },
+      "target": "api_error"
+    },
+    {
+      "source": {
+        "blockId": "confirm",
+        "output": "default"
+      },
+      "target": "end"
+    },
+    {
+      "source": {
+        "blockId": "api_error",
+        "output": "default"
+      },
+      "target": "end"
+    }
+  ]
+}

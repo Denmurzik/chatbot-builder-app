@@ -1,0 +1,40 @@
+# Отслеживаются только явно разрешённые файлы и каталоги
+/*
+!/.gitignore
+
+# Монорепозиторий, инфраструктура и CI
+!/package.json
+!/pnpm-workspace.yaml
+!/pnpm-lock.yaml
+!/tsconfig.base.json
+!/eslint.config.mjs
+!/.dependency-cruiser.cjs
+!/.prettierrc
+!/vitest.workspace.ts
+!/playwright.config.ts
+!/docker-compose.yml
+!/.env.example
+!/README.md
+!/apps/
+!/packages/
+!/e2e/
+!/.github/
+!/scripts/
+!/Dockerfile
+!/.dockerignore
+!/deploy/
+
+# Артефакты сборки, зависимости и локальное окружение
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+!.env.prod.example
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Конфиг xray с секретами лежит только на сервере
+deploy/xray/config.json

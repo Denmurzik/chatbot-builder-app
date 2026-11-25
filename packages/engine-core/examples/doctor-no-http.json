@@ -1,0 +1,151 @@
+{
+  "formatVersion": 1,
+  "blocks": [
+    {
+      "id": "start",
+      "type": "ENTRY_POINT",
+      "title": "Старт",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "hello",
+      "type": "TEXT_MESSAGE",
+      "title": "Приветствие",
+      "x": 0,
+      "y": 160,
+      "text": "Здравствуйте! Запишу вас к врачу."
+    },
+    {
+      "id": "fio",
+      "type": "TEXT_INPUT",
+      "title": "ФИО",
+      "x": 0,
+      "y": 320,
+      "question": "Как вас зовут?",
+      "variableName": "fio"
+    },
+    {
+      "id": "doctor",
+      "type": "OPTION_CHOICE",
+      "title": "Выбор врача",
+      "x": 0,
+      "y": 480,
+      "question": "К какому врачу записать, {{fio}}?",
+      "options": [
+        "Терапевт",
+        "Хирург",
+        "Окулист"
+      ],
+      "variableName": "doctor"
+    },
+    {
+      "id": "confirm",
+      "type": "OPTION_CHOICE",
+      "title": "Подтверждение",
+      "x": 0,
+      "y": 640,
+      "question": "Записать вас к врачу: {{doctor}}?",
+      "options": [
+        "Да",
+        "Нет"
+      ],
+      "variableName": "confirm"
+    },
+    {
+      "id": "done",
+      "type": "TEXT_MESSAGE",
+      "title": "Готово",
+      "x": 0,
+      "y": 800,
+      "text": "{{fio}}, вы записаны к врачу: {{doctor}}. Ждём вас!"
+    },
+    {
+      "id": "cancel",
+      "type": "TEXT_MESSAGE",
+      "title": "Отмена",
+      "x": 300,
+      "y": 800,
+      "text": "Запись отменена. Напишите нам снова."
+    },
+    {
+      "id": "end",
+      "type": "EXIT_POINT",
+      "title": "Выход",
+      "x": 130,
+      "y": 960
+    }
+  ],
+  "transitions": [
+    {
+      "source": {
+        "blockId": "start",
+        "output": "default"
+      },
+      "target": "hello"
+    },
+    {
+      "source": {
+        "blockId": "hello",
+        "output": "default"
+      },
+      "target": "fio"
+    },
+    {
+      "source": {
+        "blockId": "fio",
+        "output": "default"
+      },
+      "target": "doctor"
+    },
+    {
+      "source": {
+        "blockId": "doctor",
+        "output": "Терапевт"
+      },
+      "target": "confirm"
+    },
+    {
+      "source": {
+        "blockId": "doctor",
+        "output": "Хирург"
+      },
+      "target": "confirm"
+    },
+    {
+      "source": {
+        "blockId": "doctor",
+        "output": "Окулист"
+      },
+      "target": "confirm"
+    },
+    {
+      "source": {
+        "blockId": "confirm",
+        "output": "Да"
+      },
+      "target": "done"
+    },
+    {
+      "source": {
+        "blockId": "confirm",
+        "output": "Нет"
+      },
+      "target": "cancel"
+    },
+    {
+      "source": {
+        "blockId": "done",
+        "output": "default"
+      },
+      "target": "end"
+    },
+    {
+      "source": {
+        "blockId": "cancel",
+        "output": "default"
+      },
+      "target": "end"
+    }
+  ]
+}

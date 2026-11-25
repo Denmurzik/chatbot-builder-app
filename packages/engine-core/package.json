@@ -1,0 +1,23 @@
+{
+  "name": "@chatbot/engine-core",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "chat": "tsx scripts/console-chat.ts",
+    "test": "vitest run --root ../.. --project packages packages/engine-core"
+  },
+  "dependencies": {
+    "@chatbot/model": "workspace:*",
+    "jsep": "^1.4.0"
+  }
+}

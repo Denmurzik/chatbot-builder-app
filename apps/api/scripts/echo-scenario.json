@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "blocks": [
+    { "id": "entry", "type": "ENTRY_POINT", "title": "Старт", "x": 0, "y": 0 },
+    { "id": "input", "type": "TEXT_INPUT", "title": "Ввод", "x": 200, "y": 0, "question": "Напишите что-нибудь, я повторю", "variableName": "msg" },
+    { "id": "echo", "type": "TEXT_MESSAGE", "title": "Эхо", "x": 400, "y": 0, "text": "{{msg}}" },
+    { "id": "input2", "type": "TEXT_INPUT", "title": "Ввод", "x": 600, "y": 0, "question": "Ещё что-нибудь?", "variableName": "msg" }
+  ],
+  "transitions": [
+    { "source": { "blockId": "entry", "output": "default" }, "target": "input" },
+    { "source": { "blockId": "input", "output": "default" }, "target": "echo" },
+    { "source": { "blockId": "echo", "output": "default" }, "target": "input2" },
+    { "source": { "blockId": "input2", "output": "default" }, "target": "echo" }
+  ]
+}
